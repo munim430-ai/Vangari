@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile information, including roles and points.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "name": { "type": "string" },
+        "phone": { "type": "string" },
+        "role": { "type": "string", "enum": ["user", "collector", "admin"] },
+        "points": { "type": "number" },
+        "badges": { "type": "array", "items": { "type": "string" } },
+        "referralCode": { "type": "string" },
+        "referredBy": { "type": "string" },
+        "address": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "role", "createdAt"]
+    },
+    "Order": {
+      "title": "Pickup Order",
+      "description": "Represents a scrap pickup request.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "collectorId": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "accepted", "picked", "completed", "cancelled"] },
+        "categories": { "type": "array", "items": { "type": "string" } },
+        "photoUrl": { "type": "string" },
+        "estimatedPrice": { "type": "number" },
+        "finalPrice": { "type": "number" },
+        "weight": { "type": "number" },
+        "pickupAddress": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "status", "createdAt"]
+    },
+    "Price": {
+      "title": "Scrap Price",
+      "description": "Market prices for different scrap categories.",
+      "type": "object",
+      "properties": {
+        "category": { "type": "string" },
+        "ratePerKg": { "type": "number" },
+        "unit": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["category", "ratePerKg", "unit"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Pickup requests"
+    },
+    "/prices/{priceId}": {
+      "schema": "Price",
+      "description": "Current scrap rates"
+    }
+  }
+}

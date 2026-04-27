@@ -1,0 +1,13 @@
+{
+  "name": "Vangari - ভাঙারি",
+  "description": "A viral smart recycling platform for Bangladesh. Sell household scrap, earn rewards, and track pickups in real-time.",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "AI Image Recognition",
+    "Real-time Tracking",
+    "Digital Wallet"
+  ]
+}
