@@ -87,7 +87,7 @@ export default function App() {
             setProfile(newProfile);
           }
         } catch (error) {
-          console.error("Profile Error", error);
+          handleFirestoreError(error, OperationType.GET, `users/${firebaseUser.uid}`);
         }
       } else {
         setProfile(null);
@@ -539,7 +539,11 @@ function HistoryScreen({ orders }: { orders: ScrapOrder[] }) {
                    </div>
                    <div>
                       <p className="font-bold text-sm text-gray-900">{order.categories.join(', ') || 'Mixed Scrap'}</p>
-                      <p className="text-xs text-gray-400">{new Date(order.createdAt?.seconds * 1000).toLocaleDateString()}</p>
+                      <p className="text-xs text-gray-400">
+                        {order.createdAt?.seconds 
+                          ? new Date(order.createdAt.seconds * 1000).toLocaleDateString() 
+                          : 'Just now'}
+                      </p>
                    </div>
                 </div>
                 <div className="text-right">
