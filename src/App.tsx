@@ -1,72 +1,56 @@
-import { ArrowRight, Banknote, Bell, Camera, Gift, MapPin, Recycle, ShieldCheck, Sparkles, Truck, Wallet } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { ArrowRight, BarChart3, Building2, Camera, CheckCircle2, ClipboardList, Leaf, MapPin, Recycle, ShieldCheck, Sparkles, Truck, Wallet } from 'lucide-react';
 import { motion } from 'motion/react';
-import type { ReactNode } from 'react';
 import './index.css';
 
-const categories = ['Paper', 'Plastic', 'Iron', 'E-waste'];
-const steps = [
-  ['Upload scrap photo', 'User uploads a photo from home.', <Camera />],
-  ['AI estimates price', 'App gives an estimated value in BDT.', <Sparkles />],
-  ['Confirm pickup', 'Collector arrives at the saved address.', <Truck />],
-  ['Earn payout', 'User receives wallet balance and reward options.', <Wallet />],
+type OrderStatus = 'Pending' | 'Assigned' | 'Picked Up' | 'Paid';
+type Order = { id: string; customer: string; phone: string; area: string; address: string; category: string; weight: number; date: string; note: string; status: OrderStatus; collector: string; finalWeight?: number };
+const prices: Record<string, number> = { Paper: 18, Plastic: 22, Iron: 55, 'E-waste': 120, Glass: 8 };
+const collectors = ['Rafiq Collector', 'Green Route Team', 'Eco Van 01'];
+const demoOrders: Order[] = [
+  { id: 'VNG-1001', customer: 'Bashundhara Family', phone: '01900000000', area: 'Bashundhara', address: 'House 12, Road 4, Bashundhara R/A', category: 'Paper', weight: 12, date: 'Today, 5:00 PM', note: 'Old books and cartons', status: 'Assigned', collector: 'Rafiq Collector' },
+  { id: 'VNG-1002', customer: 'Dhanmondi Apartment', phone: '01800000000', area: 'Dhanmondi', address: 'Road 7A, Dhanmondi', category: 'Plastic', weight: 18, date: 'Tomorrow, 11:00 AM', note: 'Bottles and household plastic', status: 'Pending', collector: 'Unassigned' },
 ];
+const emptyForm = { customer: '', phone: '', area: '', address: '', category: 'Paper', weight: 5, date: '', note: '' };
 
 export default function App() {
-  return (
-    <main className="min-h-screen overflow-hidden bg-[#f6f8fb] text-[#111827]">
-      <nav className="fixed inset-x-0 top-0 z-50 border-b border-white/60 bg-white/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
-          <div className="flex items-center gap-3 text-xl font-black tracking-tight">
-            <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#06b34f] text-white shadow-lg shadow-green-200"><Recycle /></span>
-            <span>Vangari <span className="text-[#06b34f]">ভাঙারি</span></span>
-          </div>
-          <a href="#launch" className="rounded-full bg-[#111827] px-5 py-3 text-sm font-bold text-white shadow-xl shadow-gray-300">Join early access</a>
-        </div>
-      </nav>
+  const [orders, setOrders] = useState<Order[]>(demoOrders);
+  const [form, setForm] = useState(emptyForm);
+  const estimate = useMemo(() => Number(form.weight || 0) * prices[form.category], [form.weight, form.category]);
+  const totalValue = orders.reduce((sum, order) => sum + (order.finalWeight || order.weight) * prices[order.category], 0);
+  const recycledKg = orders.reduce((sum, order) => sum + Number(order.finalWeight || order.weight), 0);
 
-      <section className="relative mx-auto grid max-w-7xl gap-12 px-5 pb-20 pt-32 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
-        <div className="absolute right-0 top-24 h-96 w-96 rounded-full bg-[#06b34f]/20 blur-3xl" />
-        <motion.div initial={{opacity:0,y:24}} animate={{opacity:1,y:0}} transition={{duration:.7}} className="relative">
-          <p className="mb-5 inline-flex rounded-full border border-green-100 bg-white px-4 py-2 text-sm font-bold text-[#06b34f] shadow-sm">Bangladesh smart scrap pickup app</p>
-          <h1 className="max-w-4xl text-5xl font-black leading-[.98] tracking-tight md:text-7xl">Turn household scrap into instant cash, without bargaining.</h1>
-          <p className="mt-7 max-w-2xl text-lg leading-8 text-[#6b7280]">Vangari connects homes with verified collectors, AI-assisted price estimation, scheduled pickup, eco rewards, and payout through bKash or Nagad.</p>
-          <div className="mt-9 flex flex-col gap-4 sm:flex-row">
-            <a href="#launch" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#06b34f] px-7 py-4 font-black text-white shadow-2xl shadow-green-200">Book a demo <ArrowRight size={19}/></a>
-            <a href="#how" className="inline-flex items-center justify-center rounded-2xl border border-gray-200 bg-white px-7 py-4 font-black text-[#111827]">How it works</a>
-          </div>
-          <div className="mt-10 grid max-w-2xl grid-cols-3 gap-4 text-center">
-            {[['0 BDT','signup fee'],['4','scrap categories'],['AI','price check']].map(([a,b])=><div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-gray-100" key={b}><div className="text-3xl font-black">{a}</div><div className="text-xs font-bold uppercase tracking-wider text-gray-400">{b}</div></div>)}
-          </div>
-        </motion.div>
+  function createOrder(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setOrders([{ ...form, id: `VNG-${1000 + orders.length + 1}`, weight: Number(form.weight), status: 'Pending', collector: 'Unassigned' }, ...orders]);
+    setForm(emptyForm);
+  }
+  function updateOrder(id: string, patch: Partial<Order>) { setOrders(orders.map((order) => order.id === id ? { ...order, ...patch } : order)); }
 
-        <motion.div initial={{opacity:0,scale:.94}} animate={{opacity:1,scale:1}} transition={{duration:.7,delay:.15}} className="relative mx-auto w-full max-w-[410px]">
-          <div className="absolute -inset-8 rounded-[3rem] bg-[#06b34f]/20 blur-3xl" />
-          <div className="relative rounded-[2.6rem] border border-white bg-white p-4 shadow-2xl shadow-gray-300">
-            <div className="rounded-[2rem] bg-[#f6f8fb] p-6">
-              <div className="flex items-start justify-between"><div><p className="text-gray-500">Welcome back,</p><p className="text-4xl">Hi</p></div><Bell className="text-gray-400"/></div>
-              <div className="mt-8 rounded-[2rem] bg-[#06b34f] p-7 text-white shadow-2xl shadow-green-200"><p className="font-bold text-green-100">Eco Balance</p><p className="mt-2 text-5xl font-black">BDT 0</p><p className="mt-6 inline-flex rounded-full bg-white/15 px-4 py-2 text-sm font-bold">Top 5% in Dhaka</p></div>
-              <div className="mt-5 grid grid-cols-2 gap-4"><Mini icon={<Truck/>} title="Pickups" value="0"/><Mini icon={<Recycle/>} title="Recycled" value="12 kg"/></div>
-              <div className="mt-5 rounded-3xl border border-yellow-100 bg-yellow-50 p-4"><div className="flex items-center gap-4"><div className="grid h-14 w-14 place-items-center rounded-2xl bg-yellow-100 text-yellow-600"><Gift/></div><div><b>Invite and Earn 50 BDT</b><p className="text-sm text-gray-500">Send invite to your neighbor.</p></div></div></div>
-              <h3 className="mt-7 text-2xl font-black">Scrap Categories</h3>
-              <div className="mt-4 grid grid-cols-4 gap-3">{categories.map((c,i)=><div className="text-center text-xs font-bold text-gray-600" key={c}><div className="mb-2 rounded-2xl bg-white p-4 text-xl shadow-sm">{['📄','🥤','🧱','💻'][i]}</div>{c}</div>)}</div>
-            </div>
-          </div>
-        </motion.div>
-      </section>
+  return <main className="min-h-screen bg-[#f5f7f2] text-[#0e1d12]">
+    <nav className="sticky top-0 z-50 border-b border-green-900/10 bg-white/85 backdrop-blur-xl"><div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4"><a href="#top" className="flex items-center gap-3 text-xl font-black"><span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#0b8f43] text-white shadow-lg shadow-green-200"><Recycle /></span>Vangari <span className="text-[#0b8f43]">ভাঙারি</span></a><div className="hidden gap-6 text-sm font-bold text-slate-600 md:flex"><a href="#pitch">Pitch</a><a href="#demo">Live demo</a><a href="#ops">Operations</a><a href="#ask">Investor ask</a></div><a href="#demo" className="rounded-full bg-[#0e1d12] px-5 py-3 text-sm font-black text-white">Open MVP</a></div></nav>
 
-      <section id="how" className="bg-white py-20"><div className="mx-auto max-w-7xl px-5"><h2 className="text-4xl font-black tracking-tight md:text-5xl">Designed for the real Bangladeshi scrap market.</h2><div className="mt-10 grid gap-5 md:grid-cols-4">{steps.map(([title,text,icon])=><Card key={String(title)} icon={icon as ReactNode} title={String(title)} text={String(text)}/>)}</div></div></section>
+    <section id="top" className="mx-auto grid max-w-7xl gap-12 px-5 py-16 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
+      <motion.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .6 }}><p className="mb-5 inline-flex rounded-full border border-green-200 bg-white px-4 py-2 text-sm font-black text-[#0b8f43]">Investor-ready MVP · Bangladesh circular economy</p><h1 className="max-w-4xl text-5xl font-black leading-[.95] tracking-tight md:text-7xl">The operating system for household scrap collection.</h1><p className="mt-7 max-w-2xl text-lg leading-8 text-slate-600">Vangari turns an informal, cash-heavy scrap market into a scheduled, trackable, data-rich pickup network for homes, apartments, offices, and verified collectors.</p><div className="mt-9 flex flex-col gap-4 sm:flex-row"><a href="#demo" className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0b8f43] px-7 py-4 font-black text-white shadow-2xl shadow-green-200">Run live demo <ArrowRight size={19} /></a><a href="#pitch" className="rounded-2xl border border-green-900/10 bg-white px-7 py-4 text-center font-black">View pitch story</a></div></motion.div>
+      <motion.div initial={{ opacity: 0, scale: .96 }} animate={{ opacity: 1, scale: 1 }} className="rounded-[2.5rem] bg-[#0e1d12] p-6 text-white shadow-2xl shadow-green-900/20"><p className="text-sm font-bold text-green-200">Demo metrics</p><div className="mt-6 grid gap-4"><Metric title="Orders in pipeline" value={String(orders.length)} icon={<ClipboardList />} /><Metric title="Tracked scrap volume" value={`${recycledKg} kg`} icon={<Leaf />} /><Metric title="Estimated GMV" value={`BDT ${totalValue.toLocaleString()}`} icon={<Wallet />} /><Metric title="Collector network" value={`${collectors.length} teams`} icon={<Truck />} /></div></motion.div>
+    </section>
 
-      <section className="mx-auto grid max-w-7xl gap-8 px-5 py-20 lg:grid-cols-3">
-        <Feature icon={<ShieldCheck/>} title="Verified collectors" text="Cleaner, safer pickup experience for apartments, families, and local communities." />
-        <Feature icon={<Banknote/>} title="bKash and Nagad payout" text="Reward options built for Bangladesh, including charity donation mode." />
-        <Feature icon={<MapPin/>} title="Local pickup network" text="Start city-by-city, then scale through referral loops and collector partnerships." />
-      </section>
+    <section id="pitch" className="bg-white py-16"><div className="mx-auto max-w-7xl px-5"><div className="grid gap-5 md:grid-cols-4"><Pitch icon={<Building2 />} title="Problem" text="Urban households have scrap value but no trusted, scheduled, transparent collection channel." /><Pitch icon={<Sparkles />} title="Solution" text="Book pickup, estimate value, assign collector, track status, and convert scrap into cash or rewards." /><Pitch icon={<BarChart3 />} title="Business model" text="Commission per pickup, B2B recycling partnerships, apartment plans, and data-backed collector routing." /><Pitch icon={<ShieldCheck />} title="Moat" text="Local collector network, pricing data, neighborhood density, and repeat household behavior." /></div></div></section>
 
-      <section id="launch" className="mx-auto max-w-5xl px-5 pb-24"><div className="rounded-[2.5rem] bg-[#111827] p-8 text-white shadow-2xl md:p-14"><p className="mb-4 font-bold text-[#06b34f]">Early access</p><h2 className="text-4xl font-black md:text-6xl">Launch Vangari in your area.</h2><p className="mt-5 max-w-2xl text-lg leading-8 text-gray-300">Built for homes, apartment buildings, universities, offices, and local scrap collectors. First launch target: dense urban neighborhoods in Bangladesh.</p><div className="mt-8 flex flex-col gap-4 sm:flex-row"><a className="rounded-2xl bg-[#06b34f] px-7 py-4 text-center font-black text-white" href="mailto:keystoneeducationconsultancy@gmail.com">Contact founder</a><a className="rounded-2xl bg-white/10 px-7 py-4 text-center font-black text-white" href="https://github.com/munim430-ai/Vangari">View GitHub</a></div></div></section>
-    </main>
-  );
+    <section id="demo" className="mx-auto grid max-w-7xl gap-8 px-5 py-16 lg:grid-cols-[.9fr_1.1fr]"><div><p className="font-black text-[#0b8f43]">Clickable MVP</p><h2 className="mt-3 text-4xl font-black">No login. VC can test the core flow immediately.</h2><p className="mt-4 leading-7 text-slate-600">This demo proves the transaction loop: customer creates pickup, admin assigns collector, collector marks completion, and value is tracked.</p><div className="mt-6 grid gap-3"><Proof text="Customer booking form" /><Proof text="Dynamic price estimate" /><Proof text="Admin assignment workflow" /><Proof text="Collector completion workflow" /></div></div><form onSubmit={createOrder} className="grid gap-4 rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-green-900/5"><div className="grid gap-4 md:grid-cols-2"><Input label="Customer / building" value={form.customer} onChange={(customer) => setForm({ ...form, customer })} required /><Input label="Phone" value={form.phone} onChange={(phone) => setForm({ ...form, phone })} required /><Input label="Area" value={form.area} onChange={(area) => setForm({ ...form, area })} required /><Input label="Pickup time" value={form.date} onChange={(date) => setForm({ ...form, date })} placeholder="Today, 6 PM" required /></div><label className="grid gap-2 text-sm font-bold text-slate-600">Address<textarea required value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} className="min-h-20 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-[#0b8f43]" /></label><div className="grid gap-4 md:grid-cols-2"><label className="grid gap-2 text-sm font-bold text-slate-600">Category<select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-[#0b8f43]">{Object.keys(prices).map((item) => <option key={item}>{item}</option>)}</select></label><Input label="Estimated weight kg" type="number" value={String(form.weight)} onChange={(weight) => setForm({ ...form, weight: Number(weight) })} required /></div><Input label="Notes" value={form.note} onChange={(note) => setForm({ ...form, note })} placeholder="Cartons, bottles, electronics..." /><div className="flex flex-col justify-between gap-4 rounded-2xl bg-[#e9f7ee] p-5 md:flex-row md:items-center"><div><p className="text-sm font-bold text-slate-500">Estimated payout</p><p className="text-3xl font-black">BDT {estimate.toLocaleString()}</p></div><button className="rounded-2xl bg-[#0b8f43] px-7 py-4 font-black text-white">Create pickup</button></div></form></section>
+
+    <section id="ops" className="mx-auto max-w-7xl px-5 py-10"><div className="mb-6 flex items-end justify-between"><div><p className="font-black text-[#0b8f43]">Live order engine</p><h2 className="mt-2 text-4xl font-black">Operations dashboard</h2></div><span className="rounded-full bg-white px-4 py-2 text-sm font-black text-slate-500 ring-1 ring-green-900/5">Realtime demo state</span></div><div className="grid gap-4">{orders.map((order) => <OrderCard key={order.id} order={order} updateOrder={updateOrder} />)}</div></section>
+
+    <section className="mx-auto grid max-w-7xl gap-8 px-5 py-12 lg:grid-cols-3"><Panel icon={<ShieldCheck />} title="Admin" text="Assign collectors and control order status." />{orders.map((order) => <div key={order.id} className="rounded-3xl bg-white p-5 ring-1 ring-green-900/5"><b>{order.id}</b><p className="mb-4 text-sm text-slate-500">{order.customer} · {order.area}</p><select value={order.collector} onChange={(e) => updateOrder(order.id, { collector: e.target.value, status: 'Assigned' })} className="mb-3 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold"><option>Unassigned</option>{collectors.map((collector) => <option key={collector}>{collector}</option>)}</select><select value={order.status} onChange={(e) => updateOrder(order.id, { status: e.target.value as OrderStatus })} className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm font-bold"><option>Pending</option><option>Assigned</option><option>Picked Up</option><option>Paid</option></select></div>)}</section>
+
+    <section id="ask" className="mx-auto max-w-5xl px-5 pb-24"><div className="rounded-[2.5rem] bg-[#0e1d12] p-8 text-white shadow-2xl md:p-14"><p className="mb-4 font-bold text-[#74d99a]">Investor ask</p><h2 className="text-4xl font-black md:text-6xl">Pilot 3 dense neighborhoods, prove repeat pickup behavior, then scale collector supply.</h2><p className="mt-5 max-w-3xl text-lg leading-8 text-white/70">Next build: Firestore persistence, collector mobile view, route optimization, bKash/Nagad payout, apartment partnerships, and recycling buyer marketplace.</p><div className="mt-8 flex flex-col gap-4 sm:flex-row"><a className="rounded-2xl bg-[#0b8f43] px-7 py-4 text-center font-black text-white" href="mailto:keystoneeducationconsultancy@gmail.com">Contact founder</a><a className="rounded-2xl bg-white/10 px-7 py-4 text-center font-black text-white" href="https://github.com/munim430-ai/Vangari">View GitHub</a></div></div></section>
+  </main>;
 }
 
-function Mini({icon,title,value}:{icon:ReactNode;title:string;value:string}){return <div className="rounded-3xl bg-white p-4 shadow-sm"><div className="mb-3 text-[#06b34f]">{icon}</div><p className="text-xs font-black uppercase tracking-wider text-gray-400">{title}</p><p className="text-2xl font-black">{value}</p></div>}
-function Card({icon,title,text}:{icon:ReactNode;title:string;text:string}){return <div className="rounded-3xl bg-[#f6f8fb] p-6 ring-1 ring-gray-100"><div className="mb-5 grid h-14 w-14 place-items-center rounded-2xl bg-white text-[#06b34f] shadow-sm">{icon}</div><h3 className="text-xl font-black">{title}</h3><p className="mt-3 leading-7 text-gray-500">{text}</p></div>}
-function Feature({icon,title,text}:{icon:ReactNode;title:string;text:string}){return <div className="rounded-[2rem] bg-white p-8 shadow-sm ring-1 ring-gray-100"><div className="mb-6 text-[#06b34f]">{icon}</div><h3 className="text-2xl font-black">{title}</h3><p className="mt-3 leading-7 text-gray-500">{text}</p></div>}
+function Input({ label, value, onChange, type = 'text', placeholder, required }: { label: string; value: string; onChange: (value: string) => void; type?: string; placeholder?: string; required?: boolean }) { return <label className="grid gap-2 text-sm font-bold text-slate-600">{label}<input required={required} type={type} value={value} placeholder={placeholder} onChange={(e) => onChange(e.target.value)} className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-[#0b8f43]" /></label>; }
+function Metric({ title, value, icon }: { title: string; value: string; icon: React.ReactNode }) { return <div className="flex items-center gap-4 rounded-3xl bg-white/10 p-5"><div className="grid h-14 w-14 place-items-center rounded-2xl bg-white/10 text-[#74d99a]">{icon}</div><div><p className="text-sm font-bold text-white/60">{title}</p><p className="text-3xl font-black">{value}</p></div></div>; }
+function Pitch({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) { return <div className="rounded-3xl bg-[#f5f7f2] p-6 ring-1 ring-green-900/5"><div className="mb-5 text-[#0b8f43]">{icon}</div><h3 className="text-xl font-black">{title}</h3><p className="mt-3 leading-7 text-slate-600">{text}</p></div>; }
+function Proof({ text }: { text: string }) { return <div className="flex items-center gap-3 rounded-2xl bg-white p-4 font-bold ring-1 ring-green-900/5"><CheckCircle2 className="text-[#0b8f43]" size={20} />{text}</div>; }
+function Status({ status }: { status: OrderStatus }) { return <span className="rounded-full bg-[#e9f7ee] px-3 py-1 text-xs font-black text-[#0b8f43]">{status}</span>; }
+function OrderCard({ order, updateOrder }: { order: Order; updateOrder: (id: string, patch: Partial<Order>) => void }) { const value = (order.finalWeight || order.weight) * prices[order.category]; return <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-green-900/5"><div className="flex flex-col justify-between gap-4 md:flex-row md:items-start"><div><div className="flex items-center gap-3"><h3 className="text-2xl font-black">{order.id}</h3><Status status={order.status} /></div><p className="mt-2 text-slate-600">{order.customer} · {order.phone}</p><p className="mt-1 text-slate-500"><MapPin className="mr-1 inline" size={16} />{order.address}</p><p className="mt-3 text-sm font-bold text-slate-500">{order.category} · {order.weight} kg · {order.date}</p></div><div className="text-left md:text-right"><p className="text-sm font-bold text-slate-500">Estimated value</p><p className="text-3xl font-black">BDT {value.toLocaleString()}</p><p className="mt-2 text-sm text-slate-500">Collector: {order.collector}</p></div></div><div className="mt-5 flex flex-wrap gap-3"><button onClick={() => updateOrder(order.id, { status: 'Assigned', collector: order.collector === 'Unassigned' ? collectors[0] : order.collector })} className="rounded-xl bg-[#e9f7ee] px-4 py-2 text-sm font-black text-[#0b8f43]">Assign</button><button onClick={() => updateOrder(order.id, { status: 'Picked Up' })} className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-black">Picked up</button><button onClick={() => updateOrder(order.id, { status: 'Paid' })} className="rounded-xl bg-slate-100 px-4 py-2 text-sm font-black">Paid</button></div></div>; }
+function Panel({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) { return <div className="rounded-[2rem] bg-[#0e1d12] p-8 text-white"><div className="mb-6 text-[#74d99a]">{icon}</div><h2 className="text-4xl font-black">{title}</h2><p className="mt-4 leading-7 text-white/70">{text}</p></div>; }
