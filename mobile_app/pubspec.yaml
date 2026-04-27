@@ -1,0 +1,15 @@
+name: vangari_mobile
+description: Vangari Flutter Android MVP.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.4.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: any
+
+flutter:
+  uses-material-design: true
